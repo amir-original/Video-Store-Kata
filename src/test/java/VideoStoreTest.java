@@ -5,60 +5,83 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class VideoStoreTest {
 
-    private Customer customer;
+    private Statement statement;
+    private Movie newReleaseMovie1;
+    private Movie newReleaseMovie2;
+    private Movie newReleaseMovie3;
+    private Movie childrenMovie1;
+    private Movie regularMovie1;
+    private Movie regularMovie2;
+    private Movie regularMovie3;
+    private Movie newReleaseMovie4;
+    private Movie childrenMovie2;
+    private Movie regularMovie4;
 
     @BeforeEach
     void setUp() {
-        customer = new Customer("Fred");
+        statement = new Statement("Fred");
+        newReleaseMovie1 = new NewReleaseMovie("new release");
+        newReleaseMovie2 = new NewReleaseMovie("new release");
+        newReleaseMovie3 = new NewReleaseMovie("new release");
+        newReleaseMovie4 = new NewReleaseMovie("new release");
+        childrenMovie1 = new ChildrenMovie("children");
+        childrenMovie2 = new ChildrenMovie("children");
+        regularMovie1 = new RegularMovie("regular");
+        regularMovie2 = new RegularMovie("regular");
+        regularMovie3 = new RegularMovie("regular");
+        regularMovie4 = new RegularMovie("regular");
     }
 
     @Test
     void testSingleNewReleaseStatement() {
-        customer.addRental(new Rental(new Movie("The Cell", Movie.NEW_RELEASE), 3));
-        assertThat("Rental records for Fred\n\tThe Cell\t9.0\nYou owed 9.0\nYou earned 2 frequent renter points").isEqualTo(customer.statement());
+        statement.addRental(new Rental(newReleaseMovie1, 3));
+        statement.generate();
+        assertThat(statement.getTotalAmount()).isEqualTo(9);
+        assertThat(statement.getFrequentRenterPoints()).isEqualTo(2);
     }
 
     @Test
     void testDualNewReleaseStatement() {
-        customer.addRental(new Rental(new Movie("The Cell", Movie.NEW_RELEASE), 3));
-        customer.addRental(new Rental(new Movie("The Tigger Movie", Movie.NEW_RELEASE), 1));
-        assertThat("Rental records for Fred\n\tThe Cell\t9.0\n\tThe Tigger Movie\t3.0\nYou owed 12.0\nYou earned 3 frequent renter points").isEqualTo(customer.statement());
+        statement.addRental(new Rental(newReleaseMovie2, 3));
+        statement.addRental(new Rental(newReleaseMovie3, 1));
+        statement.generate();
+        assertThat(statement.getTotalAmount()).isEqualTo(12);
+        assertThat(statement.getFrequentRenterPoints()).isEqualTo(3);
     }
 
     @Test
     void testSingleChildrenStatement() {
-        customer.addRental(new Rental(new Movie("The Tigger Movie", Movie.CHILDRENS), 3));
-        assertThat("Rental records for Fred\n\tThe Tigger Movie\t1.5\nYou owed 1.5\nYou earned 1 frequent renter points").isEqualTo(customer.statement());
+        statement.addRental(new Rental(childrenMovie1, 3));
+        statement.generate();
+        assertThat(statement.getTotalAmount()).isEqualTo(1.5);
+        assertThat(statement.getFrequentRenterPoints()).isEqualTo(1);
     }
 
     @Test
     void testMultipleRegularStatement() {
-        customer.addRental(new Rental(new Movie("Plan 9 from Outer Space", Movie.REGULAR), 1));
-        customer.addRental(new Rental(new Movie("8 1/2", Movie.REGULAR), 2));
-        customer.addRental(new Rental(new Movie("Eraserhead", Movie.REGULAR), 3));
-        assertThat("Rental records for Fred\n\tPlan 9 from Outer Space\t2.0\n\t8 1/2\t2.0\n\tEraserhead\t3.5\nYou owed 7.5\nYou earned 3 frequent renter points").isEqualTo(customer.statement());
+        statement.addRental(new Rental(regularMovie1, 1));
+        statement.addRental(new Rental(regularMovie2, 2));
+        statement.addRental(new Rental(regularMovie3, 3));
+        statement.generate();
+        assertThat(statement.getTotalAmount()).isEqualTo(7.5);
+        assertThat(statement.getFrequentRenterPoints()).isEqualTo(3);
     }
 
     @Test
     public void testMultipleMixStatement() {
-        Customer customer = new Customer("Ali Daei");
-        customer.addRental(new Rental(new Movie("Zire Nour Mah", Movie.NEW_RELEASE), 6));
-        customer.addRental(new Rental(new Movie("Marmoulak", Movie.CHILDRENS), 7));
-        customer.addRental(new Rental(new Movie("Offside", Movie.REGULAR), 5));
+        Statement statement1 = new Statement("Ali Daei");
+        statement1.addRental(new Rental(newReleaseMovie4, 6));
+        statement1.addRental(new Rental(childrenMovie2, 7));
+        statement1.addRental(new Rental(regularMovie4, 5));
 
         String expected = "Rental records for Ali Daei\n"
-                + "	Zire Nour Mah	18.0\n"
-                + "	Marmoulak	7.5\n"
-                + "	Offside	6.5\n"
+                + "	new release	18.0\n"
+                + "	children	7.5\n"
+                + "	regular	6.5\n"
                 + "You owed 32.0\n"
                 + "You earned 4 frequent renter points";
 
-        assertThat(expected).isEqualTo(customer.statement());
+        assertThat(expected).isEqualTo(statement1.generate());
     }
 
-    @Test
-    void testNull() {
-        customer.addRental(new Rental(new Movie("The Cell", -1), 3));
-        assertThat("Rental records for Fred\n\tThe Cell\t0.0\nYou owed 0.0\nYou earned 1 frequent renter points").isEqualTo(customer.statement());
-    }
 }
